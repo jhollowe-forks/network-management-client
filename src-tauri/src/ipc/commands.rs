@@ -1,44 +1,47 @@
-use crate::analytics;
 use crate::analytics::algorithms::articulation_point::results::APResult;
 use crate::analytics::algorithms::diffusion_centrality::results::DiffCenResult;
 use crate::analytics::algorithms::stoer_wagner::results::MinCutResult;
 use crate::analytics::state::configuration::AlgorithmConfigFlags;
-use crate::mesh::{self, serial_connection::MeshConnection};
+use crate::mesh;
 use crate::state;
 
 use app::protobufs;
+use log::{debug, error, trace};
 use std::collections::HashMap;
-use tauri::Manager;
 
 use super::helpers;
 use super::CommandError;
 use super::{events, APMincutStringResults};
 
 #[tauri::command]
+pub async fn request_autoconnect_port(
+    autoconnect_state: tauri::State<'_, state::AutoConnectState>,
+) -> Result<String, CommandError> {
+    debug!("Called request_autoconnect_port command");
+
+    let autoconnect_port_guard = autoconnect_state.inner.lock().await;
+    let autoconnect_port = autoconnect_port_guard
+        .as_ref()
+        .ok_or("Autoconnect port state not initialized")?
+        .clone();
+
+    debug!("Returning autoconnect port {:?}", autoconnect_port);
+
+    Ok(autoconnect_port)
+}
+
+#[tauri::command]
 pub async fn initialize_graph_state(
     mesh_graph: tauri::State<'_, state::NetworkGraph>,
     algo_state: tauri::State<'_, state::AnalyticsState>,
 ) -> Result<(), CommandError> {
-    let new_graph = mesh::device::MeshGraph::new();
-    let state = analytics::state::AnalyticsState::new(HashMap::new(), false);
-    let mesh_graph_arc = mesh_graph.inner.clone();
-    let algo_state_arc = algo_state.inner.clone();
-
-    {
-        let mut new_graph_guard = mesh_graph_arc.lock().await;
-        *new_graph_guard = Some(new_graph);
-    }
-
-    {
-        let mut new_state_guard = algo_state_arc.lock().await;
-        *new_state_guard = Some(state);
-    }
-
-    Ok(())
+    debug!("Called initialize_graph_state command");
+    helpers::initialize_graph_state(mesh_graph, algo_state).await
 }
 
 #[tauri::command]
 pub fn get_all_serial_ports() -> Result<Vec<String>, CommandError> {
+    debug!("Called get_all_serial_ports command");
     let ports = mesh::serial_connection::SerialConnection::get_available_ports()?;
     Ok(ports)
 }
@@ -51,90 +54,19 @@ pub async fn connect_to_serial_port(
     serial_connection: tauri::State<'_, state::ActiveSerialConnection>,
     mesh_graph: tauri::State<'_, state::NetworkGraph>,
 ) -> Result<(), CommandError> {
-    let mut connection = mesh::serial_connection::SerialConnection::new();
-    let new_device = mesh::device::MeshDevice::new();
+    debug!(
+        "Called connect_to_serial_port command with port \"{}\"",
+        port_name
+    );
 
-    connection.connect(app_handle.clone(), port_name, 115_200)?;
-    connection.configure(new_device.config_id)?;
-
-    let mut decoded_listener = connection
-        .on_decoded_packet
-        .as_ref()
-        .ok_or("Decoded packet listener not open")?
-        .resubscribe();
-
-    let handle = app_handle.app_handle().clone();
-    let mesh_device_arc = mesh_device.inner.clone();
-
-    // Only need to lock to set device in tauri state
-    {
-        let mut new_device_guard = mesh_device_arc.lock().await;
-        *new_device_guard = Some(new_device);
-    }
-
-    let graph_arc = mesh_graph.inner.clone();
-
-    tauri::async_runtime::spawn(async move {
-        while let Ok(message) = decoded_listener.recv().await {
-            let variant = match message.payload_variant {
-                Some(v) => v,
-                None => continue,
-            };
-
-            let mut device_guard = mesh_device_arc.lock().await;
-            let device = match device_guard.as_mut().ok_or("Device not initialized") {
-                Ok(d) => d,
-                Err(e) => {
-                    eprintln!("{:?}", e);
-                    continue;
-                }
-            };
-            let mut graph_guard = graph_arc.lock().await;
-            let graph = match graph_guard.as_mut().ok_or("Graph not initialized") {
-                Ok(g) => g,
-                Err(e) => {
-                    eprintln!("{:?}", e);
-                    continue;
-                }
-            };
-
-            let (device_updated, graph_updated) =
-                match device.handle_packet_from_radio(variant, Some(handle.clone()), Some(graph)) {
-                    Ok(d) => d,
-                    Err(e) => {
-                        eprintln!("Error transmitting packet: {}", e);
-                        continue;
-                    }
-                };
-
-            if device_updated {
-                match events::dispatch_updated_device(handle.clone(), device.clone()) {
-                    Ok(_) => (),
-                    Err(e) => {
-                        eprintln!("Error emitting event to client: {:?}", e.to_string());
-                        continue;
-                    }
-                };
-            }
-
-            if graph_updated {
-                match events::dispatch_updated_edges(handle.clone(), graph) {
-                    Ok(_) => (),
-                    Err(e) => {
-                        eprintln!("Error emitting event to client: {:?}", e.to_string());
-                        continue;
-                    }
-                };
-            }
-        }
-    });
-
-    {
-        let mut state_connection = serial_connection.inner.lock().await;
-        *state_connection = Some(connection);
-    }
-
-    Ok(())
+    helpers::initialize_serial_connection_handlers(
+        port_name,
+        app_handle,
+        mesh_device,
+        serial_connection,
+        mesh_graph,
+    )
+    .await
 }
 
 #[tauri::command]
@@ -142,6 +74,8 @@ pub async fn disconnect_from_serial_port(
     mesh_device: tauri::State<'_, state::ActiveMeshDevice>,
     serial_connection: tauri::State<'_, state::ActiveSerialConnection>,
 ) -> Result<(), CommandError> {
+    debug!("Called disconnect_from_serial_port command");
+
     // Completely drop device memory
     {
         let mut state_device = mesh_device.inner.lock().await;
@@ -153,6 +87,7 @@ pub async fn disconnect_from_serial_port(
         let mut state_connection = serial_connection.inner.lock().await;
 
         if let Some(connection) = state_connection.as_mut() {
+            debug!("Connection exists, disconnecting");
             connection.disconnect()?;
         }
     }
@@ -168,6 +103,9 @@ pub async fn send_text(
     mesh_device: tauri::State<'_, state::ActiveMeshDevice>,
     serial_connection: tauri::State<'_, state::ActiveSerialConnection>,
 ) -> Result<(), CommandError> {
+    debug!("Called send_text command",);
+    trace!("Called with text {} on channel {}", text, channel);
+
     let mut serial_guard = serial_connection.inner.lock().await;
     let mut device_guard = mesh_device.inner.lock().await;
 
@@ -182,7 +120,7 @@ pub async fn send_text(
         channel,
     )?;
 
-    events::dispatch_updated_device(app_handle, device.clone()).map_err(|e| e.to_string())?;
+    events::dispatch_updated_device(&app_handle, device.clone()).map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -193,6 +131,9 @@ pub async fn update_device_config(
     mesh_device: tauri::State<'_, state::ActiveMeshDevice>,
     serial_connection: tauri::State<'_, state::ActiveSerialConnection>,
 ) -> Result<(), CommandError> {
+    debug!("Called update_device_config command");
+    trace!("Called with config {:?}", config);
+
     let mut serial_guard = serial_connection.inner.lock().await;
     let mut device_guard = mesh_device.inner.lock().await;
 
@@ -210,6 +151,9 @@ pub async fn update_device_user(
     mesh_device: tauri::State<'_, state::ActiveMeshDevice>,
     serial_connection: tauri::State<'_, state::ActiveSerialConnection>,
 ) -> Result<(), CommandError> {
+    debug!("Called update_device_user command");
+    trace!("Called with user {:?}", user);
+
     let mut serial_guard = serial_connection.inner.lock().await;
     let mut device_guard = mesh_device.inner.lock().await;
 
@@ -229,6 +173,9 @@ pub async fn send_waypoint(
     mesh_device: tauri::State<'_, state::ActiveMeshDevice>,
     serial_connection: tauri::State<'_, state::ActiveSerialConnection>,
 ) -> Result<(), CommandError> {
+    debug!("Called send_waypoint command");
+    trace!("Called on channel {} with waypoint {:?}", channel, waypoint);
+
     let mut serial_guard = serial_connection.inner.lock().await;
     let mut device_guard = mesh_device.inner.lock().await;
 
@@ -250,7 +197,7 @@ pub async fn send_waypoint(
         channel,
     )?;
 
-    events::dispatch_updated_device(app_handle, device.clone()).map_err(|e| e.to_string())?;
+    events::dispatch_updated_device(&app_handle, device.clone()).map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -259,13 +206,14 @@ pub async fn send_waypoint(
 pub async fn get_node_edges(
     mesh_graph: tauri::State<'_, state::NetworkGraph>,
 ) -> Result<geojson::FeatureCollection, CommandError> {
+    debug!("Called get_node_edges command");
+
     let mut guard = mesh_graph.inner.lock().await;
-    let graph = guard
-        .as_mut()
-        .ok_or("Graph not initialized")
-        .map_err(|e| e.to_string())?;
+    let graph = guard.as_mut().ok_or("Graph edges not initialized")?;
 
     let edges = helpers::generate_graph_edges_geojson(graph);
+
+    trace!("Found edges {:?}", edges);
 
     Ok(edges)
 }
@@ -276,18 +224,22 @@ pub async fn run_algorithms(
     mesh_graph: tauri::State<'_, state::NetworkGraph>,
     algo_state: tauri::State<'_, state::AnalyticsState>,
 ) -> Result<APMincutStringResults, CommandError> {
+    debug!("Called run_algorithms command");
+    trace!("Running algorithms with flags {:?}", flags);
+
     let mut guard = mesh_graph.inner.lock().await;
     let mut state_guard = algo_state.inner.lock().await;
 
     let graph_struct = guard.as_mut().ok_or("Graph not initialized")?;
     let state = state_guard.as_mut().ok_or("State not initialized")?;
 
-    println!("Running algorithms with flags:\n{:#?}", flags);
-
     state.add_graph_snapshot(&graph_struct.graph);
     state.set_algorithm_flags(flags);
     state.run_algos();
+
     let algo_result = state.get_algo_results();
+
+    debug!("Received algorithm results: {:?}", algo_result);
 
     // convert AP from a vector of NodeIndexes to a vector of IDs (strings)
     let ap_vec: Vec<u32> = match &algo_result.aps {
@@ -336,7 +288,7 @@ pub async fn run_algorithms(
             })
             .collect(),
         DiffCenResult::Error(err) => {
-            eprintln!("{:?}", err);
+            error!("{:?}", err);
             return Err("Diffusion centrality algorithm failed".into());
         }
         DiffCenResult::Empty(_) => HashMap::new(),

@@ -1,21 +1,21 @@
 {
-  "name": "meshtastic-emergency-response-client",
+  "name": "meshtastic-network-management-client",
   "version": "0.0.0",
-  "description": "Meshtastic client for emergency response",
+  "description": "Meshtastic client for network management",
   "license": "GPL-3.0-only",
   "type": "module",
   "scripts": {
-    "ui:dev": "vite",
-    "ui:build": "tsc && vite build",
-    "ui:preview": "vite preview",
-    "ui:lint": "eslint src/*.{ts,tsx}",
-    "ui:format": "prettier --write ./src && eslint src/*.{ts,tsx}",
-    "ui:test": "jest --passWithNoTests",
     "rust:dev": "tauri dev",
     "rust:build": "tauri build --",
     "rust:test": "cd src-tauri; cargo test",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "ui:dev": "vite",
+    "ui:build": "tsc && vite build",
+    "ui:lint": "eslint src/*.{ts,tsx}",
+    "ui:format": "prettier --write ./src && eslint src/*.{ts,tsx}",
+    "ui:test": "jest --passWithNoTests",
+    "ui:preview": "vite preview",
+    "ui:storybook": "storybook dev -p 6006",
+    "ui:build-storybook": "storybook build"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.13",

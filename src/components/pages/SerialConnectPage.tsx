@@ -7,16 +7,17 @@ import Hero_Image from "@app/assets/onboard_hero_image.jpg";
 import Meshtastic_Logo from "@app/assets/Mesh_Logo_Black.png";
 import SerialPortOption from "@components/Onboard/SerialPortOption";
 
+import { selectConnectionStatus } from "@features/connection/connectionSelectors";
 import {
+  requestAutoConnectPort,
   requestAvailablePorts,
   requestConnectToDevice,
 } from "@features/device/deviceActions";
-import { selectAvailablePorts } from "@features/device/deviceSelectors";
-import { selectRequestStateByName } from "@features/requests/requestSelectors";
 import {
-  IRequestState,
-  requestSliceActions,
-} from "@features/requests/requestReducer";
+  selectAutoConnectPort,
+  selectAvailablePorts,
+} from "@features/device/deviceSelectors";
+import { requestSliceActions } from "@features/requests/requestReducer";
 
 import "@components/SplashScreen/SplashScreen.css";
 
@@ -27,11 +28,13 @@ export interface IOnboardPageProps {
 const SerialConnectPage = ({ unmountSelf }: IOnboardPageProps) => {
   const dispatch = useDispatch();
   const availableSerialPorts = useSelector(selectAvailablePorts());
+  const autoConnectPort = useSelector(selectAutoConnectPort());
+
   const [selectedPortName, setSelectedPortName] = useState("");
   const [isScreenActive, setScreenActive] = useState(true);
 
-  const activePortState: IRequestState = useSelector(
-    selectRequestStateByName(requestConnectToDevice.type)
+  const activePortState = useSelector(
+    selectConnectionStatus(selectedPortName)
   ) ?? { status: "IDLE" };
 
   const requestPorts = () => {
@@ -57,8 +60,17 @@ const SerialConnectPage = ({ unmountSelf }: IOnboardPageProps) => {
   };
 
   useEffect(() => {
+    dispatch(requestAutoConnectPort());
     requestPorts();
   }, []);
+
+  // If a port has been marked for automatic connection,
+  // connect to it as if a user selected it manually
+  useEffect(() => {
+    if (autoConnectPort) {
+      handlePortSelected(autoConnectPort);
+    }
+  }, [autoConnectPort]);
 
   // Wait to allow user to recognize serial connection succeeded
   useEffect(() => {
