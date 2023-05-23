@@ -1,16 +1,6 @@
 import { invoke } from "@tauri-apps/api";
 import { all, call, put, select, takeEvery } from "redux-saga/effects";
 
-import merge from "lodash.merge";
-import mergeWith from "lodash.mergewith";
-import isArray from "lodash.isarray";
-import cloneDeep from "lodash.clonedeep";
-
-import type {
-  app_device_MeshChannel,
-  app_ipc_DeviceBulkConfig,
-} from "@bindings/index";
-
 import { requestCommitConfig } from "@features/config/configActions";
 import {
   selectCurrentAllChannelConfig,
@@ -22,11 +12,15 @@ import {
 } from "@features/config/configSelectors";
 import { configSliceActions } from "@features/config/configSlice";
 
-import { selectPrimarySerialPort } from "@features/device/deviceSelectors";
+import {
+  selectActiveNode,
+  selectConnectedDeviceNode,
+  selectPrimarySerialPort,
+} from "@features/device/deviceSelectors";
 import { requestSliceActions } from "@features/requests/requestReducer";
 
+import { getCombinedConfig } from "@utils/config";
 import type { CommandError } from "@utils/errors";
-import { getMeshChannelFromCurrentConfig } from "@utils/form";
 
 function* commitConfigWorker(action: ReturnType<typeof requestCommitConfig>) {
   try {
@@ -76,57 +70,30 @@ function* commitConfigWorker(action: ReturnType<typeof requestCommitConfig>) {
       throw new Error("Current radio or module config not defined");
     }
 
-    const configPayload: app_ipc_DeviceBulkConfig = {
-      radio: null,
-      module: null,
-      channels: null,
-    };
+    const activeNode = (yield select(
+      selectConnectedDeviceNode()
+    )) as ReturnType<ReturnType<typeof selectActiveNode>>;
 
-    // Update config payload based on flags
-
-    if (includeRadioConfig) {
-      configPayload.radio = merge(
-        cloneDeep(currentRadioConfig), // Redux object
-        editedRadioConfig
-      );
-    }
-
-    if (includeModuleConfig) {
-      configPayload.module = merge(
-        cloneDeep(currentModuleConfig), // Redux object
-        editedModuleConfig
-      );
-    }
-
-    if (includeChannelConfig) {
-      if (!currentChannelConfig) {
-        throw new Error("Current channel config not defined");
-      }
-
-      const mergedConfig: Record<number, app_device_MeshChannel> = {};
-
-      for (const [idx, config] of Object.entries(editedChannelConfig)) {
-        if (!config) continue;
-        const channelNum = parseInt(idx);
-        const meshChannel = getMeshChannelFromCurrentConfig(config);
-
-        mergedConfig[channelNum] = mergeWith(
-          cloneDeep(currentChannelConfig[channelNum]),
-          meshChannel,
-          // * Need to override array values instead of merging
-          (objVal, srcVal) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            if (isArray(objVal)) return srcVal;
-          }
-        );
-      }
-
-      configPayload.channels = Object.values(mergedConfig).map(
-        (mc) => mc.config
-      );
-    }
+    const configPayload = getCombinedConfig(
+      includeRadioConfig,
+      currentRadioConfig,
+      editedRadioConfig,
+      includeModuleConfig,
+      currentModuleConfig,
+      editedModuleConfig,
+      includeChannelConfig,
+      currentChannelConfig,
+      editedChannelConfig
+    );
 
     // Dispatch update to backend
+
+    const startingFileName = activeNode?.data.user?.longName.toLocaleLowerCase().replace(" ", "") ?? null;
+
+    yield call(invoke, "export_config_to_file", {
+      config: configPayload,
+      startingFileName,
+    });
 
     yield call(invoke, "update_device_config_bulk", {
       portName: activePort,

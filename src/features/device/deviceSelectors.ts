@@ -31,6 +31,9 @@ export const selectConnectedDeviceNodeId =
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
       state.devices.device?.myNodeInfo.myNodeNum ?? null;
 
+export const selectConnectedDeviceNode = () => (state: RootState) =>
+  selectNodeById(selectConnectedDeviceNodeId()(state))(state);
+
 export const selectDeviceConnected =
   () =>
     (state: RootState): boolean =>
@@ -43,8 +46,8 @@ export const selectAllNodes =
 
 export const selectNodeById =
   (id: number | null) =>
-    (state: RootState): app_device_MeshNode | null => id ? selectAllNodes()(state).find(n => n.data.num === id) ?? null : null;
-
+    (state: RootState): app_device_MeshNode | null =>
+      id ? selectAllNodes()(state).find((n) => n.data.num === id) ?? null : null;
 
 export const selectActiveNodeId = () => (state: RootState) =>
   state.devices.activeNode;

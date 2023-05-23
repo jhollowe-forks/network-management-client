@@ -13,6 +13,9 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use std::collections::HashMap;
+use std::io::Write;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 use super::helpers;
 use super::CommandError;
@@ -461,6 +464,43 @@ pub async fn update_device_config_bulk(
     device.commit_configuration_transaction().await?;
 
     events::dispatch_updated_device(&app_handle, device).map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn export_config_to_file(
+    config: DeviceBulkConfig,
+    starting_file_name: Option<String>,
+) -> Result<(), CommandError> {
+    debug!("Called export_config_to_file command");
+
+    let config_json = serde_json::to_string(&config).map_err(|e| e.to_string())?;
+    let file_name = format!(
+        "{}-{}.config.json",
+        starting_file_name.unwrap_or("config".into()),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    );
+
+    tauri::api::dialog::FileDialogBuilder::new()
+        .set_title("Save Device Configuration to File")
+        .set_directory(tauri::api::path::BaseDirectory::Document.variable())
+        .set_file_name(&file_name)
+        .add_filter("JSON", &["json"])
+        .save_file(move |file_path| {
+            if let Some(path) = file_path {
+                let file = std::fs::File::create(path).expect("Failed to open file");
+                let mut writer = std::io::BufWriter::new(file);
+
+                writer
+                    .write_all(config_json.as_bytes())
+                    .map_err(|e| e.to_string())
+                    .expect("Failed to write to file");
+            }
+        });
 
     Ok(())
 }

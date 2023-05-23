@@ -26,8 +26,10 @@ export const getCurrentConfigFromMeshChannel = (
 };
 
 export const getMeshChannelFromCurrentConfig = (
-  config: ChannelConfigInput
-): DeepPartial<app_device_MeshChannel> => {
+  config: ChannelConfigInput | null
+): DeepPartial<app_device_MeshChannel> | null => {
+  if (!config) return null;
+
   return {
     config: {
       role: config.role,
