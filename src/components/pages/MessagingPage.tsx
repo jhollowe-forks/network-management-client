@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
+import ConfigIcon from "@components/config/ConfigIcon";
 import ConfigLayout from "@components/config/ConfigLayout";
 import ChannelDetailView from "@components/Messaging/ChannelDetailView";
 import ChannelListElement from "@components/Messaging/ChannelListElement";
@@ -23,9 +24,17 @@ const MessagingPage = () => {
       <ConfigLayout
         title="Messaging"
         backtrace={["Messaging"]}
-        renderTitleIcon={(c) => <Cog6ToothIcon className={`${c}`} />}
-        titleIconTooltip="Configure Channels"
-        onTitleIconClick={() => navigateTo(AppRoutes.CONFIGURE_CHANNELS)}
+        renderIcons={(buttonClassName, iconClassName) => (
+          <>
+            <ConfigIcon
+              onClick={() => navigateTo(AppRoutes.CONFIGURE_CHANNELS)}
+              tooltipText="Configure channels"
+              buttonClassName={buttonClassName}
+            >
+              <Cog6ToothIcon className={`${iconClassName}`} />
+            </ConfigIcon>
+          </>
+        )}
         renderOptions={() =>
           channels
             .filter((c) => c.config.role !== 0) // * ignore DISABLED role

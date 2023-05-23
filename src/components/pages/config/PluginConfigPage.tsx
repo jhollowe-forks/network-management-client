@@ -1,10 +1,11 @@
 import React, { useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Upload } from "lucide-react";
+import { ArrowDownToLine, Upload } from "lucide-react";
 
 import type { app_protobufs_LocalModuleConfig } from "@app/bindings";
 
+import ConfigIcon from "@components/config/ConfigIcon";
 import ConfigLayout from "@components/config/ConfigLayout";
 import ConfigOption from "@components/config/ConfigOption";
 
@@ -18,7 +19,10 @@ import SerialModuleConfigPage from "@components/config/module/SerialModuleConfig
 import StoreAndForwardConfigPage from "@components/config/module/StoreAndForwardConfigPage";
 import TelemetryConfigPage from "@components/config/module/TelemetryConfigPage";
 
-import { requestCommitConfig } from "@features/config/configActions";
+import {
+  requestSaveConfigToFile,
+  requestUploadConfigToDevice,
+} from "@features/config/configActions";
 import type { IModuleConfigState } from "@features/config/configSlice";
 import {
   selectCurrentModuleConfig,
@@ -123,11 +127,29 @@ const PluginConfigPage = () => {
   return (
     <div className="flex-1">
       <ConfigLayout
-        title="Module Config"
+        title="Module"
         backtrace={["Module Configuration"]}
-        renderTitleIcon={(c) => <Upload strokeWidth={1.5} className={`${c}`} />}
-        titleIconTooltip="Upload config to device"
-        onTitleIconClick={() => dispatch(requestCommitConfig(["module"]))}
+        renderIcons={(buttonClassName, iconClassName) => (
+          <>
+            <ConfigIcon
+              onClick={() => dispatch(requestSaveConfigToFile())}
+              tooltipText="Save module configuration to file"
+              buttonClassName={buttonClassName}
+            >
+              <ArrowDownToLine
+                strokeWidth={1.5}
+                className={`${iconClassName}`}
+              />
+            </ConfigIcon>
+            <ConfigIcon
+              onClick={() => dispatch(requestUploadConfigToDevice(["module"]))}
+              tooltipText="Upload module configuration to device"
+              buttonClassName={buttonClassName}
+            >
+              <Upload strokeWidth={1.5} className={`${iconClassName}`} />
+            </ConfigIcon>
+          </>
+        )}
         renderOptions={() =>
           Object.entries(PluginConfigOptions).map(([k, displayName]) => {
             // * This is a limitation of Object.entries typing

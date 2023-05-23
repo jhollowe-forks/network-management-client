@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { message } from "@tauri-apps/api/dialog";
 import { Construction } from "lucide-react";
 
+import ConfigIcon from "@components/config/ConfigIcon";
 import ConfigLayout from "@components/config/ConfigLayout";
 import ConfigOption from "@components/config/ConfigOption";
-import MapConfigPage from "@app/components/config/application/MapConfigPage";
+
+import MapConfigPage from "@components/config/application/MapConfigPage";
 
 export const ApplicationSettingsOptions = {
   map: "Map Settings",
@@ -33,13 +36,22 @@ const ApplicationSettingsPage = () => {
       <ConfigLayout
         title="Settings"
         backtrace={["Application Settings"]}
-        renderTitleIcon={(c) => (
-          <Construction strokeWidth={1.5} className={`${c}`} />
+        renderIcons={(buttonClassName, iconClassName) => (
+          <>
+            <ConfigIcon
+              onClick={() =>
+                void message(
+                  "Application settings import is unimplemented, this feature is a work in progress.",
+                  { title: "Export Application Settings", type: "info" }
+                )
+              }
+              tooltipText="Work in progress"
+              buttonClassName={buttonClassName}
+            >
+              <Construction strokeWidth={1.5} className={`${iconClassName}`} />
+            </ConfigIcon>
+          </>
         )}
-        titleIconTooltip="Unimplemented, work in progress"
-        onTitleIconClick={() =>
-          console.warn("Radio configuration title icon onClick not implemented")
-        }
         renderOptions={() =>
           Object.entries(ApplicationSettingsOptions).map(([k, displayName]) => (
             <ConfigOption

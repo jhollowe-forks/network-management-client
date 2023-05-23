@@ -1,8 +1,11 @@
 import React, { useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Upload } from "lucide-react";
+import { ArrowDownToLine, Upload } from "lucide-react";
 
+import type { app_protobufs_LocalConfig } from "@app/bindings";
+
+import ConfigIcon from "@components/config/ConfigIcon";
 import ConfigLayout from "@components/config/ConfigLayout";
 import ConfigOption from "@components/config/ConfigOption";
 
@@ -19,9 +22,11 @@ import {
   selectCurrentRadioConfig,
   selectEditedRadioConfig,
 } from "@features/config/configSelectors";
-import { requestCommitConfig } from "@features/config/configActions";
+import {
+  requestSaveConfigToFile,
+  requestUploadConfigToDevice,
+} from "@features/config/configActions";
 import type { IRadioConfigState } from "@features/config/configSlice";
-import type { app_protobufs_LocalConfig } from "@app/bindings";
 
 export const RadioConfigOptions: Record<keyof IRadioConfigState, string> = {
   bluetooth: "Bluetooth",
@@ -118,11 +123,29 @@ const RadioConfigPage = () => {
   return (
     <div className="flex-1">
       <ConfigLayout
-        title="Radio Config"
+        title="Radio"
         backtrace={["Radio Configuration"]}
-        renderTitleIcon={(c) => <Upload strokeWidth={1.5} className={`${c}`} />}
-        titleIconTooltip="Upload config to device"
-        onTitleIconClick={() => dispatch(requestCommitConfig(["radio"]))}
+        renderIcons={(buttonClassName, iconClassName) => (
+          <>
+            <ConfigIcon
+              onClick={() => dispatch(requestSaveConfigToFile())}
+              tooltipText="Save radio configuration to file"
+              buttonClassName={buttonClassName}
+            >
+              <ArrowDownToLine
+                strokeWidth={1.5}
+                className={`${iconClassName}`}
+              />
+            </ConfigIcon>
+            <ConfigIcon
+              onClick={() => dispatch(requestUploadConfigToDevice(["radio"]))}
+              tooltipText="Upload radio configuration to device"
+              buttonClassName={buttonClassName}
+            >
+              <Upload strokeWidth={1.5} className={`${iconClassName}`} />
+            </ConfigIcon>
+          </>
+        )}
         renderOptions={() =>
           Object.entries(RadioConfigOptions).map(([k, displayName]) => {
             // * This is a limitation of Object.entries typing

@@ -1,13 +1,17 @@
 import React, { useLayoutEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Upload } from "lucide-react";
+import { ArrowDownToLine, Upload } from "lucide-react";
 
+import ConfigIcon from "@components/config/ConfigIcon";
 import ConfigLayout from "@components/config/ConfigLayout";
 import ConfigOption from "@components/config/ConfigOption";
 import ChannelConfigDetail from "@components/config/channel/ChannelConfigDetail";
 
-import { requestCommitConfig } from "@features/config/configActions";
+import {
+  requestSaveConfigToFile,
+  requestUploadConfigToDevice,
+} from "@features/config/configActions";
 import type { ChannelConfigInput } from "@features/config/configSlice";
 import { selectEditedAllChannelConfig } from "@features/config/configSelectors";
 import { selectDeviceChannels } from "@features/device/deviceSelectors";
@@ -77,11 +81,29 @@ const ChannelConfigPage = () => {
   return (
     <div className="flex-1">
       <ConfigLayout
-        title="Channel Config"
+        title="Channel"
         backtrace={["Channel Configuration"]}
-        renderTitleIcon={(c) => <Upload strokeWidth={1.5} className={`${c}`} />}
-        titleIconTooltip="Upload config to device"
-        onTitleIconClick={() => dispatch(requestCommitConfig(["channel"]))}
+        renderIcons={(buttonClassName, iconClassName) => (
+          <>
+            <ConfigIcon
+              onClick={() => dispatch(requestSaveConfigToFile())}
+              tooltipText="Save channel configuration to file"
+              buttonClassName={buttonClassName}
+            >
+              <ArrowDownToLine
+                strokeWidth={1.5}
+                className={`${iconClassName}`}
+              />
+            </ConfigIcon>
+            <ConfigIcon
+              onClick={() => dispatch(requestUploadConfigToDevice(["channel"]))}
+              tooltipText="Upload channel configuration to device"
+              buttonClassName={buttonClassName}
+            >
+              <Upload strokeWidth={1.5} className={`${iconClassName}`} />
+            </ConfigIcon>
+          </>
+        )}
         renderOptions={() =>
           meshChannels.map((c) => {
             const displayName = getChannelName(c);
