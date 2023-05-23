@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 import {
   ChevronsLeft,
@@ -13,12 +14,14 @@ import {
   RadioTower,
   Router,
   Settings,
+  Upload,
 } from "lucide-react";
 
 import SidebarIcon from "@components/Sidebar/SidebarIcon";
 import SidebarLogo from "@components/Sidebar/SidebarLogo";
 import SidebarTab from "@components/Sidebar/SidebarTab";
 
+import { requestLoadConfigFromFile } from "@features/config/configActions";
 import { AppRoutes } from "@utils/routing";
 
 import "@components/Sidebar/Sidebar.css";
@@ -26,6 +29,7 @@ import "@components/Sidebar/Sidebar.css";
 const Sidebar = () => {
   const [isSidebarExpanded, setSidebarExpanded] = useState(true);
 
+  const dispatch = useDispatch();
   const navigateTo = useNavigate();
   const location = useLocation();
 
@@ -110,6 +114,15 @@ const Sidebar = () => {
               onClick={() => navigateTo(AppRoutes.CONFIGURE_CHANNELS)}
             >
               <Mails strokeWidth={1.5} className="w-6 h-6" />
+            </SidebarIcon>
+
+            <SidebarIcon
+              name="Load Saved Config"
+              isActive={false}
+              isSidebarExpanded={isSidebarExpanded}
+              onClick={() => dispatch(requestLoadConfigFromFile())}
+            >
+              <Upload strokeWidth={1.5} className="w-6 h-6" />
             </SidebarIcon>
           </SidebarTab>
         </div>

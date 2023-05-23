@@ -132,7 +132,7 @@ const PluginConfigPage = () => {
         renderIcons={(buttonClassName, iconClassName) => (
           <>
             <ConfigIcon
-              onClick={() => dispatch(requestSaveConfigToFile())}
+              onClick={() => dispatch(requestSaveConfigToFile(["module"]))}
               tooltipText="Save module configuration to file"
               buttonClassName={buttonClassName}
             >

@@ -504,3 +504,26 @@ pub async fn export_config_to_file(
 
     Ok(())
 }
+
+#[tauri::command]
+pub async fn import_config_from_file() -> Result<DeviceBulkConfig, CommandError> {
+    debug!("Called import_config_from_file command");
+
+    let file_path = tauri::api::dialog::blocking::FileDialogBuilder::new()
+        .set_title("Open Device Configuration File")
+        .set_directory(tauri::api::path::BaseDirectory::Document.variable())
+        .add_filter("JSON", &["json"])
+        .pick_file();
+
+    if let Some(path) = file_path {
+        let file = std::fs::File::open(path).expect("Failed to open file");
+        let reader = std::io::BufReader::new(file);
+
+        return match serde_json::from_reader(reader) {
+            Ok(config) => Ok(config),
+            Err(e) => Err(format!("Failed to parse file: {}", e.to_string()).into()),
+        };
+    }
+
+    Err("No configuration file selected".into())
+}

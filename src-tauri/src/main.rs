@@ -136,6 +136,7 @@ fn main() {
             ipc::commands::commit_configuration_transaction,
             ipc::commands::update_device_config_bulk,
             ipc::commands::export_config_to_file,
+            ipc::commands::import_config_from_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

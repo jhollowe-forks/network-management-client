@@ -128,7 +128,7 @@ const RadioConfigPage = () => {
         renderIcons={(buttonClassName, iconClassName) => (
           <>
             <ConfigIcon
-              onClick={() => dispatch(requestSaveConfigToFile())}
+              onClick={() => dispatch(requestSaveConfigToFile(["radio"]))}
               tooltipText="Save radio configuration to file"
               buttonClassName={buttonClassName}
             >

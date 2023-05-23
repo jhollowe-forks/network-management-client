@@ -5,6 +5,10 @@ export const requestUploadConfigToDevice = createAction<(keyof IConfigState)[]>(
   "@device/request-upload-config-to-device"
 );
 
-export const requestSaveConfigToFile = createAction(
+export const requestSaveConfigToFile = createAction<(keyof IConfigState)[]>(
   "@device/request-save-config-to-file"
+);
+
+export const requestLoadConfigFromFile = createAction(
+  "@device/request-load-config-from-file"
 );

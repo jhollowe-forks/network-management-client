@@ -86,7 +86,7 @@ const ChannelConfigPage = () => {
         renderIcons={(buttonClassName, iconClassName) => (
           <>
             <ConfigIcon
-              onClick={() => dispatch(requestSaveConfigToFile())}
+              onClick={() => dispatch(requestSaveConfigToFile(["channel"]))}
               tooltipText="Save channel configuration to file"
               buttonClassName={buttonClassName}
             >
