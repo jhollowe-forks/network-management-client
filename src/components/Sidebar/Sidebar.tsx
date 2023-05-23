@@ -46,6 +46,7 @@ const Sidebar = () => {
           <SidebarTab title="Overview" isSidebarExpanded={isSidebarExpanded}>
             <SidebarIcon
               name="View Map"
+              tooltipText="View Map"
               isActive={location.pathname === AppRoutes.MAP}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.MAP)}
@@ -55,6 +56,7 @@ const Sidebar = () => {
 
             <SidebarIcon
               name="Messaging"
+              tooltipText="Messaging"
               isActive={location.pathname === AppRoutes.MESSAGING}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.MESSAGING)}
@@ -66,6 +68,7 @@ const Sidebar = () => {
           <SidebarTab title="Network" isSidebarExpanded={isSidebarExpanded}>
             <SidebarIcon
               name="Manage Nodes"
+              tooltipText="Manage Nodes"
               isActive={location.pathname === AppRoutes.MANAGE_NODES}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.MANAGE_NODES)}
@@ -75,6 +78,7 @@ const Sidebar = () => {
 
             <SidebarIcon
               name="Manage Waypoints"
+              tooltipText="Manage Waypoints"
               isActive={location.pathname === AppRoutes.MANAGE_WAYPOINTS}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.MANAGE_WAYPOINTS)}
@@ -89,6 +93,7 @@ const Sidebar = () => {
           >
             <SidebarIcon
               name="Configure Radio"
+              tooltipText="Configure Radio"
               isActive={location.pathname.includes(AppRoutes.CONFIGURE_RADIO)}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.CONFIGURE_RADIO)}
@@ -98,6 +103,7 @@ const Sidebar = () => {
 
             <SidebarIcon
               name="Configure Modules"
+              tooltipText="Configure Modules"
               isActive={location.pathname.includes(AppRoutes.CONFIGURE_PLUGINS)}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.CONFIGURE_PLUGINS)}
@@ -107,6 +113,7 @@ const Sidebar = () => {
 
             <SidebarIcon
               name="Configure Channels"
+              tooltipText="Configure Channels"
               isActive={location.pathname.includes(
                 AppRoutes.CONFIGURE_CHANNELS
               )}
@@ -118,6 +125,7 @@ const Sidebar = () => {
 
             <SidebarIcon
               name="Load Saved Config"
+              tooltipText="Load Saved Config"
               isActive={false}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => dispatch(requestLoadConfigFromFile())}
@@ -131,6 +139,7 @@ const Sidebar = () => {
           <SidebarTab title="Settings" isSidebarExpanded={isSidebarExpanded}>
             <SidebarIcon
               name="Application State"
+              tooltipText="Application State"
               isActive={location.pathname === AppRoutes.APPLICATION_STATE}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.APPLICATION_STATE)}
@@ -140,6 +149,7 @@ const Sidebar = () => {
 
             <SidebarIcon
               name="Application Settings"
+              tooltipText="Application Settings"
               isActive={location.pathname === AppRoutes.APPLICATION_SETTINGS}
               isSidebarExpanded={isSidebarExpanded}
               onClick={() => navigateTo(AppRoutes.APPLICATION_SETTINGS)}
@@ -152,6 +162,7 @@ const Sidebar = () => {
 
           <SidebarIcon
             name="Collapse Sidebar"
+            tooltipText="Collapse Sidebar"
             isActive={false}
             isSidebarExpanded={isSidebarExpanded}
             onClick={() => setSidebarExpanded(!isSidebarExpanded)}
