@@ -108,14 +108,18 @@ fn main() {
         inner: Arc::new(async_runtime::Mutex::new(None)),
     };
 
-    let mut inital_autoconnect_state = state::AutoConnectState {
+    let initial_mqtt_client_proxy_state = state::MqttClientProxyState {
+        inner: Arc::new(async_runtime::Mutex::new(HashMap::new())),
+    };
+
+    let mut initial_autoconnect_state = state::AutoConnectState {
         inner: Arc::new(async_runtime::Mutex::new(None)),
     };
 
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
-            match handle_cli_matches(app, &mut inital_autoconnect_state) {
+            match handle_cli_matches(app, &mut initial_autoconnect_state) {
                 Ok(_) => {}
                 Err(err) => panic!("Failed to parse CLI args:\n{}", err),
             }
@@ -125,9 +129,10 @@ fn main() {
             app.app_handle().manage(initial_radio_connections_state);
             app.app_handle().manage(initial_graph_state);
             app.app_handle().manage(initial_analytics_state);
+            app.app_handle().manage(initial_mqtt_client_proxy_state);
 
             // Autoconnect port state needs to be set after being mutated by CLI parser
-            app.app_handle().manage(inital_autoconnect_state);
+            app.app_handle().manage(initial_autoconnect_state);
 
             Ok(())
         })
@@ -149,6 +154,9 @@ fn main() {
             ipc::commands::radio::start_configuration_transaction,
             ipc::commands::radio::commit_configuration_transaction,
             ipc::commands::radio::update_device_config_bulk,
+            ipc::commands::mqtt::initialize_mqtt_client_proxy,
+            ipc::commands::mqtt::destroy_mqtt_client_proxy,
+            ipc::commands::mqtt::destroy_all_mqtt_client_proxies
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

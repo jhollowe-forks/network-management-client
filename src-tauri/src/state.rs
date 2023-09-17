@@ -1,4 +1,4 @@
-use crate::{analytics, device};
+use crate::{analytics, device, ipc::commands::mqtt::MqttClient};
 use meshtastic::api::ConnectedStreamApi;
 use std::{collections::HashMap, sync::Arc};
 use tauri::async_runtime;
@@ -37,4 +37,11 @@ pub type AutoConnectStateInner = Arc<async_runtime::Mutex<Option<DeviceKey>>>;
 #[derive(Debug)]
 pub struct AutoConnectState {
     pub inner: AutoConnectStateInner,
+}
+
+pub type MqttClientProxyStateInner = Arc<async_runtime::Mutex<HashMap<DeviceKey, MqttClient>>>;
+
+#[derive(Debug)]
+pub struct MqttClientProxyState {
+    pub inner: MqttClientProxyStateInner,
 }
