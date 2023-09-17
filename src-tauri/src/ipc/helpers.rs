@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use log::{debug, error, trace, warn};
-use meshtastic::connections::PacketRouter;
+use meshtastic::packet::PacketRouter;
 use meshtastic::protobufs;
 use tauri::api::notification::Notification;
 use tokio::sync::mpsc::UnboundedReceiver;

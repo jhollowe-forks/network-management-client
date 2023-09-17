@@ -1,5 +1,5 @@
-use meshtastic::connections::PacketRouter;
 use meshtastic::protobufs;
+use meshtastic::{packet::PacketRouter, types::NodeId};
 
 use crate::device::MeshDevice;
 
@@ -9,8 +9,8 @@ use super::{
 };
 
 impl PacketRouter<DeviceUpdateMetadata, DeviceUpdateError> for MeshDevice {
-    fn get_source_node_id(&self) -> u32 {
-        self.my_node_info.my_node_num
+    fn source_node_id(&self) -> NodeId {
+        NodeId::new(self.my_node_info.my_node_num)
     }
 
     fn handle_packet_from_radio(

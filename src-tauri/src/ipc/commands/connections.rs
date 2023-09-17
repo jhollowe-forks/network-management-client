@@ -7,7 +7,8 @@ use crate::state;
 use crate::state::DeviceKey;
 
 use log::debug;
-use meshtastic::connections::stream_api::StreamApi;
+use meshtastic::api::StreamApi;
+use meshtastic::utils;
 use std::time::Duration;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
@@ -67,7 +68,10 @@ where
     // Configure device via stream API
 
     device.set_status(SerialDeviceStatus::Configuring);
-    let stream_api = stream_api.configure(device.config_id).await?;
+    let stream_api = stream_api
+        .configure(device.config_id)
+        .await
+        .map_err(|e| e.to_string())?;
 
     // Persist connection in Tauri state
 
@@ -112,6 +116,7 @@ where
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub async fn connect_to_serial_port(
     port_name: String,
     baud_rate: Option<u32>,
@@ -129,7 +134,8 @@ pub async fn connect_to_serial_port(
 
     // Create serial connection stream
 
-    let stream = StreamApi::build_serial_stream(port_name.clone(), baud_rate, dtr, rts)?;
+    let stream = utils::stream::build_serial_stream(port_name.clone(), baud_rate, dtr, rts)
+        .map_err(|e| e.to_string())?;
 
     // Create and persist new connection
 
@@ -162,7 +168,9 @@ pub async fn connect_to_tcp_port(
 
     // Create TCP connection stream
 
-    let stream = StreamApi::build_tcp_stream(address.clone()).await?;
+    let stream = utils::stream::build_tcp_stream(address.clone())
+        .await
+        .map_err(|e| e.to_string())?;
 
     // Create and persist new connection
 

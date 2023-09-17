@@ -1,8 +1,9 @@
 use crate::{analytics, device};
-use meshtastic::connections::stream_api::{state::Configured, StreamApi};
+use meshtastic::api::ConnectedStreamApi;
 use std::{collections::HashMap, sync::Arc};
 use tauri::async_runtime;
 
+// TODO make this a wrapper struct
 pub type DeviceKey = String;
 
 pub type MeshDevicesInner = Arc<async_runtime::Mutex<HashMap<DeviceKey, device::MeshDevice>>>;
@@ -12,8 +13,7 @@ pub struct MeshDevices {
     pub inner: MeshDevicesInner,
 }
 
-pub type RadioConnectionsInner =
-    Arc<async_runtime::Mutex<HashMap<DeviceKey, StreamApi<Configured>>>>;
+pub type RadioConnectionsInner = Arc<async_runtime::Mutex<HashMap<DeviceKey, ConnectedStreamApi>>>;
 
 pub struct RadioConnections {
     pub inner: RadioConnectionsInner,

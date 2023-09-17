@@ -296,18 +296,18 @@ impl From<protobufs::Waypoint> for NormalizedWaypoint {
     }
 }
 
-impl Into<protobufs::Waypoint> for NormalizedWaypoint {
-    fn into(self) -> protobufs::Waypoint {
+impl From<NormalizedWaypoint> for protobufs::Waypoint {
+    fn from(val: NormalizedWaypoint) -> Self {
         protobufs::Waypoint {
-            id: self.id,
+            id: val.id,
             // Converting to f64 first to cover entire i32 range
-            latitude_i: convert_location_field_to_protos(self.latitude),
-            longitude_i: convert_location_field_to_protos(self.longitude),
-            expire: self.expire,
-            locked_to: self.locked_to,
-            name: self.name,
-            description: self.description,
-            icon: self.icon,
+            latitude_i: convert_location_field_to_protos(val.latitude),
+            longitude_i: convert_location_field_to_protos(val.longitude),
+            expire: val.expire,
+            locked_to: val.locked_to,
+            name: val.name,
+            description: val.description,
+            icon: val.icon,
         }
     }
 }

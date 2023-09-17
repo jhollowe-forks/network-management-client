@@ -4,7 +4,8 @@ use crate::ipc::CommandError;
 use crate::state::{self, DeviceKey};
 
 use log::{debug, trace};
-use meshtastic::connections::PacketDestination;
+use meshtastic::packet::PacketDestination;
+use meshtastic::types::MeshChannel;
 
 #[tauri::command]
 pub async fn send_text(
@@ -17,6 +18,8 @@ pub async fn send_text(
 ) -> Result<(), CommandError> {
     debug!("Called send_text command",);
     trace!("Called with text {} on channel {}", text, channel);
+
+    let mesh_channel = MeshChannel::new(channel).map_err(|e| e.to_string())?;
 
     let mut devices_guard = mesh_devices.inner.lock().await;
     let device = devices_guard
@@ -34,9 +37,10 @@ pub async fn send_text(
             text.clone(),
             PacketDestination::Broadcast,
             true,
-            channel,
+            mesh_channel,
         )
-        .await?;
+        .await
+        .map_err(|e| e.to_string())?;
 
     events::dispatch_updated_device(&app_handle, device).map_err(|e| e.to_string())?;
 
@@ -55,6 +59,8 @@ pub async fn send_waypoint(
     debug!("Called send_waypoint command");
     trace!("Called on channel {} with waypoint {:?}", channel, waypoint);
 
+    let mesh_channel = MeshChannel::new(channel).map_err(|e| e.to_string())?;
+
     let mut devices_guard = mesh_devices.inner.lock().await;
     let device = devices_guard
         .get_mut(&device_key)
@@ -71,9 +77,10 @@ pub async fn send_waypoint(
             waypoint.into(),
             PacketDestination::Broadcast,
             true,
-            channel,
+            mesh_channel,
         )
-        .await?;
+        .await
+        .map_err(|e| e.to_string())?;
 
     events::dispatch_updated_device(&app_handle, device).map_err(|e| e.to_string())?;
 

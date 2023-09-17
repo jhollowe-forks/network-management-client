@@ -154,12 +154,15 @@ dependencies:
   redux-saga:
     specifier: ^1.2.1
     version: 1.2.1
+  rust#main:
+    specifier: github:meshtastic/rust#main
+    version: github.com/meshtastic/rust/de65754da92fb75b326d6ec86b52e9d6bab8d330
   tailwindcss-radix:
     specifier: ^2.8.0
     version: 2.8.0
   tauri-plugin-store-api:
     specifier: github:tauri-apps/tauri-plugin-store#v1
-    version: github.com/tauri-apps/tauri-plugin-store/96e2eb3971c981ece96f0a9e47dad14a2d1d2539
+    version: github.com/tauri-apps/tauri-plugin-store/a65ce9bfb168a9a3cd7ed4102b9f22770cc3abfa
   timeago-react:
     specifier: ^3.0.5
     version: 3.0.5(react@18.2.0)
@@ -8127,8 +8130,14 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/tauri-apps/tauri-plugin-store/96e2eb3971c981ece96f0a9e47dad14a2d1d2539:
-    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-store/tar.gz/96e2eb3971c981ece96f0a9e47dad14a2d1d2539}
+  github.com/meshtastic/rust/de65754da92fb75b326d6ec86b52e9d6bab8d330:
+    resolution: {tarball: https://codeload.github.com/meshtastic/rust/tar.gz/de65754da92fb75b326d6ec86b52e9d6bab8d330}
+    name: rust#main
+    version: 0.0.0
+    dev: false
+
+  github.com/tauri-apps/tauri-plugin-store/a65ce9bfb168a9a3cd7ed4102b9f22770cc3abfa:
+    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-store/tar.gz/a65ce9bfb168a9a3cd7ed4102b9f22770cc3abfa}
     name: tauri-plugin-store-api
     version: 0.0.0
     dependencies:

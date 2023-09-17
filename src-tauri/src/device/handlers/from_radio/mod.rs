@@ -7,7 +7,7 @@ mod tests {
         helpers::{generate_rand_id, get_current_time_u32},
     };
 
-    use meshtastic::{connections::PacketRouter, protobufs};
+    use meshtastic::{packet::PacketRouter, protobufs};
 
     fn initialize_mock_device() -> device::MeshDevice {
         device::MeshDevice::new()
