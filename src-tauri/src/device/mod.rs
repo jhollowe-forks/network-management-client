@@ -17,7 +17,7 @@ pub mod state;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Type)]
 #[serde(rename_all = "camelCase")]
-pub enum SerialDeviceStatus {
+pub enum DeviceConnectionStatus {
     Restarting,   // unused
     Disconnected, // no attempt or failure to connect
     Connecting,   // connection initialized, not yet configured
@@ -27,9 +27,9 @@ pub enum SerialDeviceStatus {
     Configured,   // configured but UI not yet notified
 }
 
-impl Default for SerialDeviceStatus {
+impl Default for DeviceConnectionStatus {
     fn default() -> Self {
-        SerialDeviceStatus::Disconnected
+        DeviceConnectionStatus::Disconnected
     }
 }
 
@@ -339,15 +339,15 @@ pub struct ChannelMessageWithState {
 #[derive(Clone, Debug, Default, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct MeshDevice {
-    pub config_id: u32,             // unique identifier for configuration flow packets
-    pub ready: bool,                // is device configured to participate in mesh
-    pub status: SerialDeviceStatus, // current config status of device
+    pub config_id: u32, // unique identifier for configuration flow packets
+    pub ready: bool,    // is device configured to participate in mesh
+    pub status: DeviceConnectionStatus, // current config status of device
     pub channels: HashMap<u32, MeshChannel>, // channels device is able to access
     pub config: protobufs::LocalConfig, // local-only device configuration
     pub module_config: protobufs::LocalModuleConfig, // configuration for meshtastic modules
     pub my_node_info: protobufs::MyNodeInfo, // debug information specific to device
     pub nodes: HashMap<u32, MeshNode>, // network devices this device has communicated with
-    pub region_unset: bool,         // flag for whether device has an unset LoRa region
+    pub region_unset: bool, // flag for whether device has an unset LoRa region
     pub device_metrics: protobufs::DeviceMetrics, // information about functioning of device (e.g. battery level)
     pub waypoints: HashMap<u32, NormalizedWaypoint>, // updatable GPS positions managed by this device
     pub neighbors: HashMap<u32, NeighborInfoPacket>, //updated packets from each node containing their neighbors

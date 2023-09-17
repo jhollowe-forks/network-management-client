@@ -7,7 +7,7 @@ use meshtastic::protobufs;
 use tauri::api::notification::Notification;
 use tokio::sync::mpsc::UnboundedReceiver;
 
-use crate::device::SerialDeviceStatus;
+use crate::device::DeviceConnectionStatus;
 use crate::ipc::events::{dispatch_configuration_status, dispatch_rebooting_event};
 use crate::ipc::{events, ConfigurationStatus};
 use crate::state::DeviceKey;
@@ -128,9 +128,9 @@ pub fn spawn_configuration_timeout_handler(
         };
 
         // If the device is not registered as configuring, take no action
-        // since this means the device configuration has succeeded
+        // since this means the device configuration has succeeded.
 
-        if device.status != SerialDeviceStatus::Configuring {
+        if device.status != DeviceConnectionStatus::Configuring {
             return;
         }
 
@@ -220,7 +220,7 @@ pub fn spawn_decoded_handler(
             }
 
             if update_result.configuration_success
-                && device.status == SerialDeviceStatus::Configured
+                && device.status == DeviceConnectionStatus::Configured
             {
                 debug!(
                     "Emitting successful configuration of device \"{}\"",
@@ -235,8 +235,8 @@ pub fn spawn_decoded_handler(
                         message: None,
                     },
                 )
-                .expect("Failed to dispatch configuration failure message");
-                device.set_status(SerialDeviceStatus::Connected);
+                .expect("Failed to dispatch configuration success message");
+                device.set_status(DeviceConnectionStatus::Connected);
             }
 
             if let Some(notification_config) = update_result.notification_config {

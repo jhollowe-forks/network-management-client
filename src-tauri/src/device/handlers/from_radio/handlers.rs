@@ -3,7 +3,7 @@ use meshtastic::protobufs;
 use crate::device::{
     handlers::{DeviceUpdateError, DeviceUpdateMetadata},
     helpers::get_current_time_u32,
-    MeshChannel, MeshDevice, SerialDeviceStatus,
+    DeviceConnectionStatus, MeshChannel, MeshDevice,
 };
 
 pub fn handle_channel_packet(
@@ -48,7 +48,7 @@ pub fn handle_config_complete_packet(
     device: &mut MeshDevice,
     update_result: &mut DeviceUpdateMetadata,
 ) -> Result<(), DeviceUpdateError> {
-    device.set_status(SerialDeviceStatus::Configured);
+    device.set_status(DeviceConnectionStatus::Configured);
 
     update_result.device_updated = true;
     update_result.configuration_success = true;

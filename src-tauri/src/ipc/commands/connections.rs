@@ -1,5 +1,5 @@
 use crate::device;
-use crate::device::SerialDeviceStatus;
+use crate::device::DeviceConnectionStatus;
 use crate::ipc::helpers::spawn_configuration_timeout_handler;
 use crate::ipc::helpers::spawn_decoded_handler;
 use crate::ipc::CommandError;
@@ -62,12 +62,12 @@ where
 
     // Connect to device via stream API
 
-    device.set_status(SerialDeviceStatus::Connecting);
+    device.set_status(DeviceConnectionStatus::Connecting);
     let (decoded_listener, stream_api) = stream_api.connect(stream).await;
 
     // Configure device via stream API
 
-    device.set_status(SerialDeviceStatus::Configuring);
+    device.set_status(DeviceConnectionStatus::Configuring);
     let stream_api = stream_api
         .configure(device.config_id)
         .await
@@ -215,7 +215,7 @@ pub async fn drop_device_connection(
         // Clear corresponding state device
 
         if let Some(device) = state_devices.get_mut(&device_key) {
-            device.set_status(SerialDeviceStatus::Disconnected);
+            device.set_status(DeviceConnectionStatus::Disconnected);
         }
 
         state_devices.remove(&device_key);
@@ -245,7 +245,7 @@ pub async fn drop_all_device_connections(
         let mut state_devices = mesh_devices.inner.lock().await;
 
         for (_port_name, device) in state_devices.iter_mut() {
-            device.set_status(SerialDeviceStatus::Disconnected);
+            device.set_status(DeviceConnectionStatus::Disconnected);
         }
 
         // This could be removed in the future to maintain state on previous devices
