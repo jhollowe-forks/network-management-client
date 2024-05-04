@@ -145,7 +145,7 @@ Some optional extensions that aren't required but we find very helpful:
 
 To standardize our development flow, we utilize PNPM commands, defined in `package.json`. These commands can be run with the `pnpm run NAME ...ARGS` syntax. Our commands are broken out into two primary categories, `rust:*` commands and `ui:*` commands. The `rust:*` commands run the entire desktop application, where the `ui:*` commands only run the UI layer.
 
-> **Note:** We strongly recommend against using the `ui:dev` and `ui:build` commands manually. These commands are invoked internally by the `rust:dev` and `rust:build` commands, respectively. You will **not** be able to connect to a serial devce when running the `ui:dev` command, as this logic is not handled in the UI layer.
+> **Note:** We strongly recommend against using the `ui:dev` and `ui:build` commands manually. These commands are invoked internally by the `rust:dev` and `rust:build` commands, respectively. You will **not** be able to connect to a serial device when running the `ui:dev` command, as this logic is not handled in the UI layer.
 
 We are currently working to add support for the [Storybook](https://storybook.js.org/) framework, which will allow contributors to develop UI components without running the entire desktop application.
 
